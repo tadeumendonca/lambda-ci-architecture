@@ -1,0 +1,22 @@
+version: 0.2
+run-as: root
+env:
+  variables:
+    LAMBDA_DEPLOY_BUCKET: $LAMBDA_DEPLOY_BUCKET
+phases:
+    install:
+        run-as: root
+        runtime-versions:
+          nodejs: 10
+        commands:
+            - pip3 install awscli --upgrade --user
+            - mkdir -p "deploy"
+    build:
+        run-as: root
+        commands:
+            - $CODEBUILD_SRC_DIR/deploy-lambda.sh
+artifacts:
+    name: $CODEBUILD_INITIATOR-$(date +%Y%m%d%H%M%S)
+    base-directory: $CODEBUILD_SRC_DIR/deploy
+    files: 
+        - '*.zip'

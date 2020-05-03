@@ -1,0 +1,14 @@
+{
+  "name": "get-comentarios",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tadeu Mendonça <tadeu.mendonca@outlook.com> (https://tadeumendonca.me)",
+  "license": "MIT",
+  "dependencies": {
+    "uuid": "^7.0.3"
+  }
+}

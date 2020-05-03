@@ -1,0 +1,170 @@
+swagger: '2.0'
+info:
+  version: '1.0'
+  title: "lambdaarch"
+schemes:
+  - https
+security:
+  - APIKeyHeader: []
+paths:
+  "/api":
+    get:
+      description: "Sumario Materias"
+      produces:
+        - application/json
+      responses:
+        200:
+          description: "Materias obtidas com sucesso."
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Materia"
+        401:
+          $ref: '#/responses/UnauthorizedError'
+
+      x-amazon-apigateway-integration:
+        uri: ${get_materias_arn}
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws_proxy"
+
+  "/api/comentarios":
+    get:
+      description: "Listar Comentarios"
+      parameters:
+        - in: query
+          name: materia
+          type: string
+          required: true
+          description: Materia associada à lista de comentários a ser retornada.
+        - in: query
+          name: offset
+          type: string
+          format: date
+          required: true
+          description: Timestamp da última chave avaliada pela API para resposta paginada.
+      produces:
+        - application/json
+      responses:
+        200:
+          description: "Comentarios obtidos com sucesso."
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Comentario"
+        400:
+          $ref: "#/responses/InvalidParameters"
+        401:
+          $ref: '#/responses/UnauthorizedError'
+
+      x-amazon-apigateway-integration:
+        uri: ${get_comentarios_arn}
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws_proxy"
+    post:
+      description: "Inserir Comentario"
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: requestData
+          schema:
+            type: object
+            $ref: "#/definitions/Comentario"
+      responses:
+        200:
+          description: "Comentario inserido com sucesso."
+          schema:
+            type: object
+            $ref: "#/definitions/GetComentariosResponse"
+        401:
+          $ref: '#/responses/UnauthorizedError'
+      x-amazon-apigateway-integration:
+        uri: ${post_comentarios_arn}
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws_proxy"
+responses:
+    InvalidParameters:
+      description: Query parameters not found in given request.
+      schema: 
+        type: object
+        $ref: "#/definitions/ResponseControl"
+    UnauthorizedError:
+      description: API key is missing or invalid
+      headers:
+        WWW_Authenticate:
+          type: string
+      schema: 
+        type: object
+        $ref: "#/definitions/ResponseControl"
+definitions:
+  GetComentariosResponse:
+    type: object
+    description: "Estrutura de Resposta p/ API de Lista de Comentarios"
+    properties:
+      Items:
+        type: array
+        items:
+          $ref: "#/definitions/Comentario"
+      Count:
+        type: number
+      ScannedCount:
+        type: number
+      LastEvaluatedKey:
+        type: object
+        $ref: "#/definitions/LastEvaluatedKey"
+  LastEvaluatedKey:
+    type: object
+    properties:
+      materia:
+        type: string
+      timestamp:
+        type: string
+        format: date
+  Materia:
+    type: object
+    description: "Materia"
+    properties:
+      materia:
+        type: string
+        description: "Id da Materia"
+      totalComentarios:
+        type: number
+        description: "Quantidade de Comentários da Matéria"
+  Comentario:
+    type: object
+    description: "Comentario"
+    properties:
+      id:
+        type: integer
+        description: "Id do Comentario"
+      materia:
+        type: string
+        description: "Id da Materia"
+      email:
+        type: string
+        description: "Autor do Comentario"
+      timestamp:
+        type: string
+        description: "Data do Comentario"
+        format: date
+  ResponseControl:
+    type: object
+    description: "Estrutura de Retorno de Codigos de Erro"
+    properties:
+      code:
+        type: string
+        description: "Codigo do Erro"
+      reason:
+        type: string
+        description: "Titulo do Erro"
+      detail:
+        type: string
+        description: "Descricao do Erro"
+securityDefinitions:
+   APIKeyHeader:
+     type: apiKey
+     in: header
+     name: X-API-Key
